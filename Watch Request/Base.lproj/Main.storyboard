@@ -42,7 +42,6 @@
         <!--Watch Request-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Watch_Request" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
@@ -90,6 +89,7 @@
                         <outlet property="toWatchBtn" destination="X3o-Oa-IVW" id="7AK-yW-UHd"/>
                     </connections>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1047.8260869565217" y="137.94642857142856"/>
         </scene>
@@ -141,7 +141,6 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="100" id="gkB-lq-7Ok"/>
                                 </constraints>
-                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="URL" keyboardAppearance="alert" returnKeyType="continue" smartDashesType="no" smartInsertDeleteType="no" smartQuotesType="no"/>
                             </textView>
@@ -188,6 +187,7 @@
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
+                                    <action selector="httpSendBtnPress:" destination="MRK-83-SDT" eventType="touchUpInside" id="CFD-4W-Rhj"/>
                                     <segue destination="uPs-pD-5Mz" kind="popoverPresentation" popoverAnchorView="uzA-SK-AWC" id="zJ9-bV-VoK">
                                         <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
                                     </segue>
@@ -233,7 +233,7 @@
                         <outlet property="httpHeaderSelect" destination="cqQ-4y-lbD" id="iYd-xL-N9b"/>
                         <outlet property="httpHeaderVal" destination="fd3-PY-ycY" id="0Le-fH-OUt"/>
                         <outlet property="httpMethod" destination="M6X-hX-Hjc" id="Ej7-aR-EwA"/>
-                        <outlet property="httpSendBtn" destination="uzA-SK-AWC" id="fom-OL-5BF"/>
+                        <outlet property="httpSendBtn" destination="uzA-SK-AWC" id="OHC-BF-uLC"/>
                         <outlet property="httpUrl" destination="Uis-Wc-5HI" id="EqX-Yr-rNf"/>
                     </connections>
                 </viewController>
@@ -267,14 +267,12 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="150" id="B6l-K8-tbq"/>
                                 </constraints>
-                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="TND-oK-OsD">
                                 <rect key="frame" x="15" y="302" width="384" height="497"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <mutableString key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</mutableString>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
@@ -283,7 +281,7 @@
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="17"/>
                                 <state key="normal" title="SEND"/>
                                 <connections>
-                                    <action selector="sendBtnPress:" destination="uPs-pD-5Mz" eventType="touchUpInside" id="bsq-52-xTz"/>
+                                    <action selector="shareBtnPress:" destination="uPs-pD-5Mz" eventType="touchUpInside" id="EuV-Wf-ZqT"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="w9N-CV-Fpb">
@@ -319,8 +317,9 @@
                         <viewLayoutGuide key="safeArea" id="WW3-RZ-YMy"/>
                     </view>
                     <connections>
-                        <outlet property="requestText" destination="y7y-qV-Ohm" id="thi-OJ-U1h"/>
-                        <outlet property="responseText" destination="TND-oK-OsD" id="aMD-ou-Xah"/>
+                        <outlet property="httpShareBtn" destination="SLH-0H-wO6" id="OJh-M6-oVX"/>
+                        <outlet property="requestText" destination="y7y-qV-Ohm" id="R3b-dV-2EF"/>
+                        <outlet property="responseText" destination="TND-oK-OsD" id="8Ai-Qm-BfO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="h5Q-RZ-Z2I" userLabel="First Responder" sceneMemberID="firstResponder"/>
