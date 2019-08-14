@@ -349,24 +349,41 @@ class RequestViewController: UIViewController {
                 requestOutput["headers"] = headerVals;
                 
                 if(body != "") {
+                    let bodyData = body.data(using: .utf8, allowLossyConversion: false)!
                     if(bodyType == "TEXT"){
-                        request.httpBody = body.data(using: String.Encoding.utf8, allowLossyConversion: false)
+                        request.httpBody = bodyData
                     } else {
-                        print("BODY")
-                        print(body)
-//                        let dict = try convertToDictionary(text: body)
-//                        print("dict")
-//                        print(dict)
+//                        print("bodyData")
+//                        print(bodyData)
+                        
+                        let data = body.data(using: .utf8)!
                         do {
-                            let bodyData = body.data(using: String.Encoding.utf8, allowLossyConversion: false)
-                            let jsonBody = try JSONSerialization.jsonObject(with: bodyData!) as! [String: Any]
-//                            request.httpBody = dictData
-                            print("jsonBody")
-                            print(jsonBody)
-                        } catch {
-                            print("json error: \(error.localizedDescription)")
+                            if let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [String:Any]
+                            {
+                                print(jsonArray) // use the json here
+                            } else {
+                                print("bad json")
+                                jsonParseCheck = false
+                            }
+                        } catch let error as NSError {
+                            print(body)
+                            print("ERROR")
+                            print(error)
                             jsonParseCheck = false
                         }
+                        
+//                        do {
+//                            let dict: [String: Any] = convertToDictionary(text: body.replacingOccurrences(of: "\\", with: "")) ?? [:]
+////                            let jsonBody = try JSONSerialization.data(withJSONObject: dict)
+////                            request.httpBody = jsonBody
+//                            print("DICT")
+//                            print(dict)
+////                            print("jsonBody")
+////                            print(jsonBody)
+//                        } catch {
+//                            print("json error: \(error.localizedDescription)")
+//                            jsonParseCheck = false
+//                        }
                     }
                     requestOutput["body"] = body
                 }
@@ -389,7 +406,7 @@ class RequestViewController: UIViewController {
                         
                         do {
                             if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-                                print(json)
+//                                print(json)
                                 let output = stringify(json: json, prettyPrinted: true)
                                 self.showResponseView(str:output)
                             }
