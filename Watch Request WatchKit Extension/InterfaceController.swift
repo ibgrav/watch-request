@@ -12,6 +12,8 @@ import Foundation
 
 class InterfaceController: WKInterfaceController {
 
+    @IBOutlet var sendBtn: WKInterfaceButton!
+    
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
@@ -28,4 +30,7 @@ class InterfaceController: WKInterfaceController {
         super.didDeactivate()
     }
 
+    @IBAction func sendBtnPress() {
+        
+    }
 }

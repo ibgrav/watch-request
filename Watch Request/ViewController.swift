@@ -127,12 +127,6 @@ class RequestViewController: UIViewController {
     @IBOutlet var httpHeadCounter: UIStepper!
     
     override func viewWillDisappear(_ animated: Bool) {
-        var bodyTypeText = "TEXT";
-        switch httpBodyType.selectedSegmentIndex {
-        case 0: bodyTypeText = "TEXT"
-        case 1: bodyTypeText = "JSON"
-        default: break
-        }
         
         var methodText = "GET";
         switch httpMethod.selectedSegmentIndex {
@@ -145,8 +139,10 @@ class RequestViewController: UIViewController {
         
         UserDefaults.standard.set(httpUrl.text, forKey: "url")
         UserDefaults.standard.set(httpBody.text, forKey: "body")
-        UserDefaults.standard.set(bodyTypeText, forKey: "bodyType")
+        UserDefaults.standard.set(httpBodyType.selectedSegmentIndex, forKey: "bodyType")
         UserDefaults.standard.set(methodText, forKey: "method")
+        UserDefaults.standard.set(bodyHeader["val"], forKey: "bodyHeadVal")
+        UserDefaults.standard.set(bodyHeader["key"], forKey: "bodyHeadKey")
         UserDefaults.standard.set(headOne["val"], forKey: "headOneVal")
         UserDefaults.standard.set(headTwo["val"], forKey: "headTwoVal")
         UserDefaults.standard.set(headThree["val"], forKey: "headThreeVal")
@@ -160,16 +156,18 @@ class RequestViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        var headerText = ""
         let url = UserDefaults.standard.string(forKey: "url") ?? ""
         let body = UserDefaults.standard.string(forKey: "body") ?? ""
-        let bodyType = UserDefaults.standard.string(forKey: "bodyType") ?? ""
+        let bodyType = UserDefaults.standard.integer(forKey: "bodyType")
         let headKey = UserDefaults.standard.string(forKey: "headKey") ?? ""
         let headVal = UserDefaults.standard.string(forKey: "headVal") ?? ""
         let method = UserDefaults.standard.string(forKey: "method") ?? ""
         let headCount = UserDefaults.standard.double(forKey: "headCount")
         
         httpHeadCounter.value = headCount
+        
+        bodyHeader["key"] = UserDefaults.standard.string(forKey: "bodyHeadKey")
+        bodyHeader["val"] = UserDefaults.standard.string(forKey: "bodyHeadVal")
         
         headOne["key"] = UserDefaults.standard.string(forKey: "headOneKey")
         headTwo["key"] = UserDefaults.standard.string(forKey: "headTwoKey")
@@ -181,28 +179,19 @@ class RequestViewController: UIViewController {
         headThree["val"] = UserDefaults.standard.string(forKey: "headThreeVal")
         headFour["val"] = UserDefaults.standard.string(forKey: "headFourVal")
         
-        headOne != [:] ? headerText += "\(headOne["key"] ?? "") : \(headOne["val"] ?? "")\n" : nil
-        headTwo != [:] ? headerText += "\(headTwo["key"] ?? "") : \(headTwo["val"] ?? "")\n" : nil
-        headThree != [:] ? headerText += "\(headThree["key"] ?? "") : \(headThree["val"] ?? "")\n" : nil
-        headFour != [:] ? headerText += "\(headFour["key"] ?? "") : \(headFour["val"] ?? "")" : nil
+        updateHeaderOutput()
         
         headOne != [:] ? httpHeadCounter.value = 1.0 : nil
         headTwo != [:] ? httpHeadCounter.value = 2.0 : nil
         headThree != [:] ? httpHeadCounter.value = 3.0 : nil
         headFour != [:] ? httpHeadCounter.value = 4.0 : nil
         
-        httpHeadersOutput.text = headerText
-        
         httpUrl.text = url
         httpBody.text = body
         httpHeaderKey.text = headKey
         httpHeaderVal.text = headVal
     
-        switch bodyType {
-        case "TEXT": httpBodyType.selectedSegmentIndex = 0
-        case "JSON": httpBodyType.selectedSegmentIndex = 1
-        default: break
-        }
+        httpBodyType.selectedSegmentIndex = bodyType
         
         switch method {
         case "GET": httpMethod.selectedSegmentIndex = 0
@@ -227,9 +216,26 @@ class RequestViewController: UIViewController {
     
     //HTTP SETTINGS ACTIONS
     
+    @IBAction func bodyTypeChanged(_ sender: UISegmentedControl) {
+        let currentVal = sender.selectedSegmentIndex
+        
+        print(currentVal)
+        
+        switch currentVal {
+        case 0: bodyHeader = [:]
+        case 1: bodyHeader = ["key":"Content-Type","val":"text/plain"]
+        case 2: bodyHeader = ["key":"Content-Type","val":"application/json"]
+        case 3: bodyHeader = ["key":"Content-Type","val":"application/xml"]
+        default: break
+        }
+        
+        print(bodyHeader)
+        
+        updateHeaderOutput()
+    }
+    
     @IBAction func headerCount(_ sender: UIStepper) {
         let count = Double(sender.value);
-        var headerText = ""
         var headCheck:Bool = true;
         let prevCount = UserDefaults.standard.double(forKey: "headCount")
         
@@ -281,12 +287,8 @@ class RequestViewController: UIViewController {
             headOne = [:]; headTwo = [:]; headThree = [:]; headFour = [:]
         }
         
-        headOne != [:] ? headerText += "\(headOne["key"] ?? "") : \(headOne["val"] ?? "")\n" : nil
-        headTwo != [:] ? headerText += "\(headTwo["key"] ?? "") : \(headTwo["val"] ?? "")\n" : nil
-        headThree != [:] ? headerText += "\(headThree["key"] ?? "") : \(headThree["val"] ?? "")\n" : nil
-        headFour != [:] ? headerText += "\(headFour["key"] ?? "") : \(headFour["val"] ?? "")" : nil
+        updateHeaderOutput()
         
-        httpHeadersOutput.text = headerText
         httpHeaderKey.text = ""
         httpHeaderVal.text = ""
         
@@ -296,23 +298,14 @@ class RequestViewController: UIViewController {
     @IBAction func httpSendBtnPress(_ sender: UIButton) {
         let url: String = httpUrl.text ?? ""
         let body: String = httpBody.text ?? ""
-        var bodyType: String = "TEXT"
-        let bodyTypeIndex: Int = httpBodyType.selectedSegmentIndex
         var method: String = "GET"
         let methodIndex: Int = httpMethod.selectedSegmentIndex
-        var jsonParseCheck = true
         
         switch methodIndex {
         case 0: method = "GET"
         case 1: method = "POST"
         case 2: method = "PUT"
         case 3: method = "DELETE"
-        default: break
-        }
-        
-        switch bodyTypeIndex {
-        case 0: bodyType = "TEXT"
-        case 1: bodyType = "JSON"
         default: break
         }
         
@@ -329,6 +322,10 @@ class RequestViewController: UIViewController {
                 var request = URLRequest(url: URL(string: url)!)
                 request.httpMethod = method
                 
+                if(bodyHeader["key"] != nil && bodyHeader["val"] != nil) {
+                    request.setValue(bodyHeader["val"], forHTTPHeaderField: bodyHeader["key"] ?? "")
+                    headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")"
+                }
                 if(headOne["key"] != nil && headOne["val"] != nil) {
                     request.setValue(headOne["val"], forHTTPHeaderField: headOne["key"] ?? "")
                     headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")"
@@ -349,42 +346,7 @@ class RequestViewController: UIViewController {
                 requestOutput["headers"] = headerVals;
                 
                 if(body != "") {
-                    let bodyData = body.data(using: .utf8, allowLossyConversion: false)!
-                    if(bodyType == "TEXT"){
-                        request.httpBody = bodyData
-                    } else {
-//                        print("bodyData")
-//                        print(bodyData)
-                        
-                        let data = body.data(using: .utf8)!
-                        do {
-                            if let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [String:Any]
-                            {
-                                print(jsonArray) // use the json here
-                            } else {
-                                print("bad json")
-                                jsonParseCheck = false
-                            }
-                        } catch let error as NSError {
-                            print(body)
-                            print("ERROR")
-                            print(error)
-                            jsonParseCheck = false
-                        }
-                        
-//                        do {
-//                            let dict: [String: Any] = convertToDictionary(text: body.replacingOccurrences(of: "\\", with: "")) ?? [:]
-////                            let jsonBody = try JSONSerialization.data(withJSONObject: dict)
-////                            request.httpBody = jsonBody
-//                            print("DICT")
-//                            print(dict)
-////                            print("jsonBody")
-////                            print(jsonBody)
-//                        } catch {
-//                            print("json error: \(error.localizedDescription)")
-//                            jsonParseCheck = false
-//                        }
-                    }
+                    request.httpBody = body.data(using: .utf8, allowLossyConversion: false)!
                     requestOutput["body"] = body
                 }
                 
@@ -392,45 +354,46 @@ class RequestViewController: UIViewController {
                     UserDefaults.standard.set(stringify(json: requestOutput, prettyPrinted: true), forKey: "httpRequest")
                 }
                 
-                if(jsonParseCheck) {
-                    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                        guard let data = data, error == nil else {
-                            self.showResponseView(str:String(error!.localizedDescription))
-                            print("error=\(String(describing: error))")
-                            return
-                        }
-                        
-    //                    let httpStatus = response as? HTTPURLResponse
-    //                    let statusMsg: String = String(httpStatus!.statusCode)
-    //                    print(httpStatus!)
-                        
-                        do {
-                            if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-//                                print(json)
-                                let output = stringify(json: json, prettyPrinted: true)
-                                self.showResponseView(str:output)
-                            }
-                        } catch let error {
-                            print(error.localizedDescription)
-                            let str = String(decoding: data, as: UTF8.self)
-                            self.showResponseView(str:str)
-                        }
+                let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                    guard let data = data, error == nil else {
+                        self.showResponseView(str:String(error!.localizedDescription), code:999)
+                        self.resetSendBtn()
+                        print("error=\(String(describing: error))")
+                        return
                     }
-                    task.resume()
-                } else {
-                    self.httpSendBtn.setTitle("Invalid JSON", for: .normal)
+                    
+                    let httpStatus = response as? HTTPURLResponse
+                    let statusMsg: Int = Int(httpStatus!.statusCode)
+                    print("STATUS MSG")
+                    print(statusMsg)
+                    
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
+//                                print(json)
+                            let output = stringify(json: json, prettyPrinted: true)
+                            self.showResponseView(str:output, code:statusMsg)
+                            self.resetSendBtn()
+                        }
+                    } catch let error {
+                        print(error.localizedDescription)
+                        let str = String(decoding: data, as: UTF8.self)
+                        self.showResponseView(str:str, code:statusMsg)
+                        self.resetSendBtn()
+                    }
                 }
+                task.resume()
             }
         } else {
             self.httpSendBtn.setTitle("Invalid URL", for: .normal)
+            resetSendBtn()
         }
-        resetSendBtn()
     }
     
     //CUSTOM STYLING & GLOBAL FUNCS
-    func showResponseView(str:String){
+    func showResponseView(str:String, code:Int){
         DispatchQueue.main.async {
             UserDefaults.standard.set(str, forKey: "httpResponse")
+            UserDefaults.standard.set(code, forKey: "httpCode")
             self.performSegue(withIdentifier: "httpResponseSegue", sender: self)
         }
     }
@@ -440,6 +403,17 @@ class RequestViewController: UIViewController {
             self.httpSendBtn.setTitle("Send", for: .normal)
         }
     }
+    func updateHeaderOutput(){
+        var headerText:String = ""
+        
+        bodyHeader != [:] ? headerText += "\(bodyHeader["key"] ?? "") : \(bodyHeader["val"] ?? "")\n" : nil
+        headOne != [:] ? headerText += "\(headOne["key"] ?? "") : \(headOne["val"] ?? "")\n" : nil
+        headTwo != [:] ? headerText += "\(headTwo["key"] ?? "") : \(headTwo["val"] ?? "")\n" : nil
+        headThree != [:] ? headerText += "\(headThree["key"] ?? "") : \(headThree["val"] ?? "")\n" : nil
+        headFour != [:] ? headerText += "\(headFour["key"] ?? "") : \(headFour["val"] ?? "")" : nil
+        
+        httpHeadersOutput.text = headerText
+    }
 }
 
 class ResponseViewController: UIViewController {
@@ -448,10 +422,30 @@ class ResponseViewController: UIViewController {
     @IBOutlet var requestText: UITextView!
     @IBOutlet var responseText: UITextView!
     @IBOutlet var responseCloseBtn: UIButton!
+    @IBOutlet var responseCode: UILabel!
     
     override func viewWillAppear(_ animated: Bool) {
         requestText.text = UserDefaults.standard.string(forKey: "httpRequest") ?? ""
         responseText.text = UserDefaults.standard.string(forKey: "httpResponse") ?? ""
+        let httpCode = UserDefaults.standard.integer(forKey: "httpCode")
+        
+        if(httpCode == 999){
+            responseCode.text = "ERR"
+        } else {
+            responseCode.text = String(httpCode)
+        }
+        
+        if(httpCode < 200) {
+            responseCode.textColor = UIColor(red: 0.4, green: 0.4, blue: 0.8, alpha: 1.0)
+        } else if(httpCode < 300) {
+            responseCode.textColor = UIColor(red: 0.4, green: 0.8, blue: 0.4, alpha: 1.0)
+        } else if(httpCode < 400) {
+            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.4, alpha: 1.0)
+        } else if(httpCode < 500) {
+            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.4, alpha: 1.0)
+        } else {
+            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.8, alpha: 1.0)
+        }
         
         print(UserDefaults.standard.string(forKey: "httpResponse") ?? "")
         setBtnStyle(btn: httpShareBtn, radius: 5.0, shadow: 0.0)
@@ -537,6 +531,7 @@ func setSegmentStyle(seg:UISegmentedControl){
 //    seg.layer.shadowRadius = 5.0
 }
 
+var bodyHeader:[String:String] = [:]
 var headOne:[String:String] = [:]
 var headTwo:[String:String] = [:]
 var headThree:[String:String] = [:]
