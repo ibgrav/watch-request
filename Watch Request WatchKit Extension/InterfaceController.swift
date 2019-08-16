@@ -57,10 +57,8 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate  {
                 self.sendBtn.setTitle("...");
                 
                 do {
-                    var requestOutput: [String : Any] = [
-                        "url": url,
-                        "method": method
-                    ]
+                    var reqOut:String = "url:\n\(url)\n"
+                    reqOut += "\nmethod:    \(method)\n"
                     var headerVals:String = "";
                     
                     var request = URLRequest(url: URL(string: url)!)
@@ -68,35 +66,35 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate  {
                     
                     if(globs["bodyHeadKey"] != "" && globs["bodyHeadVal"] != "") {
                         request.setValue(globs["bodyHeadVal"], forHTTPHeaderField: globs["bodyHeadKey"] ?? "")
-                        headerVals += "\(globs["bodyHeadKey"] ?? ""): \(globs["bodyHeadVal"] ?? "")"
+                        headerVals += "\(globs["bodyHeadKey"] ?? ""): \(globs["bodyHeadVal"] ?? "")\n"
                     }
                     if(globs["headOneKey"] != "" && globs["headOneVal"] != "") {
                         request.setValue(globs["headOneVal"], forHTTPHeaderField: globs["headOneKey"] ?? "")
-                        headerVals += "\(globs["headOneKey"] ?? ""): \(globs["headOneVal"] ?? "")"
+                        headerVals += "\(globs["headOneKey"] ?? ""): \(globs["headOneVal"] ?? "")\n"
                     }
                     if(globs["headTwoKey"] != "" && globs["headTwoVal"] != "") {
                         request.setValue(globs["headTwoVal"], forHTTPHeaderField: globs["headTwoKey"] ?? "")
-                        headerVals += "\(globs["headTwoKey"] ?? ""): \(globs["headTwoVal"] ?? "")"
+                        headerVals += "\(globs["headTwoKey"] ?? ""): \(globs["headTwoVal"] ?? "")\n"
                     }
                     if(globs["headThreeKey"] != "" && globs["headThreeVal"] != "") {
                         request.setValue(globs["headThreeVal"], forHTTPHeaderField: globs["headThreeKey"] ?? "")
-                        headerVals += "\(globs["headThreeKey"] ?? ""): \(globs["headThreeVal"] ?? "")"
+                        headerVals += "\(globs["headThreeKey"] ?? ""): \(globs["headThreeVal"] ?? "")\n"
                     }
                     if(globs["headFourKey"] != "" && globs["headFourVal"] != "") {
                         request.setValue(globs["headFourVal"], forHTTPHeaderField: globs["headFourKey"] ?? "")
-                        headerVals += "\(globs["headFourKey"] ?? ""): \(globs["headFourVal"] ?? "")"
+                        headerVals += "\(globs["headFourKey"] ?? ""): \(globs["headFourVal"] ?? "")\n"
                     }
                     
                     if(headerVals != ""){
-                        requestOutput["headers"] = headerVals;
+                        reqOut += "\nheaders:\n\(headerVals)";
                     }
                     
                     if(body != "") {
                         request.httpBody = body.data(using: .utf8, allowLossyConversion: false)!
-                        requestOutput["body"] = body
+                        reqOut += "\nbody:\n\(body)";
                     }
                     
-                    globs["httpRequest"] = stringify(json: requestOutput, prettyPrinted: true)
+                    globs["httpRequest"] = reqOut
                     
                     let task = URLSession.shared.dataTask(with: request) { data, response, error in
                         guard let data = data, error == nil else {

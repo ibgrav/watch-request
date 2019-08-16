@@ -413,9 +413,13 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         var headCheck:Bool = true;
         let prevCount = UserDefaults.standard.double(forKey: "headCount")
         
-        if(httpHeaderKey.text == "" && httpHeaderVal.text == ""){
+        if(httpHeaderKey.text?.isEmpty ?? true || httpHeaderVal.text?.isEmpty ?? true){
             headCheck = false;
         }
+        print("httpHeaderKey.text?.isEmpty ?? true")
+        print(httpHeaderKey.text?.isEmpty ?? true)
+        print("httpHeaderVal.text?.isEmpty ?? true")
+        print(httpHeaderVal.text?.isEmpty ?? true)
         
         if(count == 4){
             if(headCheck){
@@ -423,6 +427,7 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 headFour["val"] = httpHeaderVal.text ?? ""
             } else {
                 sender.value -= 1.0;
+                headFour = ["key":"","val":""]
             }
         } else if(count == 3){
             if(count > prevCount){
@@ -458,13 +463,18 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 headTwo = ["key":"","val":""]
             }
         } else if(count == 0){
-            headOne = ["key":"","val":""]; headTwo = ["key":"","val":""]; headThree = ["key":"","val":""]; headFour = ["key":"","val":""]
+            headOne = ["key":"","val":""]
+            headTwo = ["key":"","val":""]
+            headThree = ["key":"","val":""]
+            headFour = ["key":"","val":""]
         }
         
         updateHeaderOutput()
         
-        httpHeaderKey.text = ""
-        httpHeaderVal.text = ""
+        if(headCheck){
+            httpHeaderKey.text = ""
+            httpHeaderVal.text = ""
+        }
         
         UserDefaults.standard.set(sender.value, forKey: "headCount")
     }
@@ -494,23 +504,23 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 var request = URLRequest(url: URL(string: url)!)
                 request.httpMethod = method
                 
-                if(bodyHeader != ["key":"","val":""]) {
+                if(bodyHeader["key"] != "" && bodyHeader["val"] != "") {
                     request.setValue(bodyHeader["val"], forHTTPHeaderField: bodyHeader["key"] ?? "")
                     headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")\n"
                 }
-                if(headOne != ["key":"","val":""]) {
+                if(headOne["key"] != "" && headOne["val"] != "") {
                     request.setValue(headOne["val"], forHTTPHeaderField: headOne["key"] ?? "")
                     headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")\n"
                 }
-                if(headTwo != ["key":"","val":""]) {
+                if(headTwo["key"] != "" && headTwo["val"] != "") {
                     request.setValue(headTwo["val"], forHTTPHeaderField: headTwo["key"] ?? "")
                     headerVals += ", \(headTwo["key"] ?? ""): \(headTwo["val"] ?? "")\n"
                 }
-                if(headThree != ["key":"","val":""]) {
+                if(headThree["key"] != "" && headThree["val"] != "") {
                     request.setValue(headThree["val"], forHTTPHeaderField: headThree["key"] ?? "")
                     headerVals += ", \(headThree["key"] ?? ""): \(headThree["val"] ?? "")\n"
                 }
-                if(headFour != ["key":"","val":""]) {
+                if(headFour["key"] != "" && headFour["val"] != "") {
                     request.setValue(headFour["val"], forHTTPHeaderField: headFour["key"] ?? "")
                     headerVals += ", \(headFour["key"] ?? ""): \(headFour["val"] ?? "")\n"
                 }
