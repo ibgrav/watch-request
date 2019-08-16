@@ -81,15 +81,15 @@ class LandingViewController: UIViewController, WCSessionDelegate {
                     //send to watch
                     try validSession.updateApplicationContext(iPhoneAppContext)
                     self.sendWatchBtn.setTitle("Ready!", for: .normal)
-                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.2, green: 0.7, blue: 0.2, alpha: 1)
+                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1)
                 } catch {
                     self.sendWatchBtn.setTitle("Watch Error", for: .normal)
-                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.7, green: 0.2, blue: 0.2, alpha: 1)
+                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1)
                 }
             }
         } else {
             self.sendWatchBtn.setTitle("Invalid URL!", for: .normal)
-            self.sendWatchBtn.backgroundColor = UIColor(red: 0.7, green: 0.2, blue: 0.2, alpha: 1)
+            self.sendWatchBtn.backgroundColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1)
         }
         
         resetSendWatchBtn()
@@ -487,10 +487,8 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         if(verifyUrl(urlString: url)) {
             self.httpSendBtn.setTitle("...", for: .normal)
             do {
-                var requestOutput: [String : Any] = [
-                    "url": url,
-                    "method": method
-                ]
+                var reqOut:String = "url:\n\(url)\n"
+                reqOut += "\nmethod:    \(method)\n"
                 var headerVals:String = "";
                 
                 var request = URLRequest(url: URL(string: url)!)
@@ -498,34 +496,36 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 
                 if(bodyHeader != ["key":"","val":""]) {
                     request.setValue(bodyHeader["val"], forHTTPHeaderField: bodyHeader["key"] ?? "")
-                    headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")"
+                    headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")\n"
                 }
                 if(headOne != ["key":"","val":""]) {
                     request.setValue(headOne["val"], forHTTPHeaderField: headOne["key"] ?? "")
-                    headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")"
+                    headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")\n"
                 }
                 if(headTwo != ["key":"","val":""]) {
                     request.setValue(headTwo["val"], forHTTPHeaderField: headTwo["key"] ?? "")
-                    headerVals += ", \(headTwo["key"] ?? ""): \(headTwo["val"] ?? "")"
+                    headerVals += ", \(headTwo["key"] ?? ""): \(headTwo["val"] ?? "")\n"
                 }
                 if(headThree != ["key":"","val":""]) {
                     request.setValue(headThree["val"], forHTTPHeaderField: headThree["key"] ?? "")
-                    headerVals += ", \(headThree["key"] ?? ""): \(headThree["val"] ?? "")"
+                    headerVals += ", \(headThree["key"] ?? ""): \(headThree["val"] ?? "")\n"
                 }
                 if(headFour != ["key":"","val":""]) {
                     request.setValue(headFour["val"], forHTTPHeaderField: headFour["key"] ?? "")
-                    headerVals += ", \(headFour["key"] ?? ""): \(headFour["val"] ?? "")"
+                    headerVals += ", \(headFour["key"] ?? ""): \(headFour["val"] ?? "")\n"
                 }
                 
-                requestOutput["headers"] = headerVals;
+                if(headerVals != "") {
+                    reqOut += "\nheaders:\n\(headerVals)";
+                }
                 
                 if(body != "") {
                     request.httpBody = body.data(using: .utf8, allowLossyConversion: false)!
-                    requestOutput["body"] = body
+                    reqOut += "\nbody:\n\(body)";
                 }
                 
                 DispatchQueue.main.async {
-                    UserDefaults.standard.set(stringify(json: requestOutput, prettyPrinted: true), forKey: "httpRequest")
+                    UserDefaults.standard.set(reqOut, forKey: "httpRequest")
                 }
                 
                 let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -613,15 +613,15 @@ class ResponseViewController: UIViewController {
         }
         
         if(httpCode < 200) {
-            responseCode.textColor = UIColor(red: 0.4, green: 0.4, blue: 0.8, alpha: 1.0)
+            responseCode.textColor = UIColor(red: 0.2, green: 0.2, blue: 0.8, alpha: 1.0)
         } else if(httpCode < 300) {
-            responseCode.textColor = UIColor(red: 0.4, green: 0.8, blue: 0.4, alpha: 1.0)
+            responseCode.textColor = UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0)
         } else if(httpCode < 400) {
-            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.4, alpha: 1.0)
+            responseCode.textColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0)
         } else if(httpCode < 500) {
-            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.4, alpha: 1.0)
+            responseCode.textColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0)
         } else {
-            responseCode.textColor = UIColor(red: 0.8, green: 0.4, blue: 0.8, alpha: 1.0)
+            responseCode.textColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0)
         }
         
         print(UserDefaults.standard.string(forKey: "httpResponse") ?? "")
@@ -631,6 +631,16 @@ class ResponseViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        //scroll outputs to top
+        requestText.setContentOffset(.zero, animated: true)
+        responseText.setContentOffset(.zero, animated: true)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        //scroll outputs to top
+        requestText.setContentOffset(.zero, animated: true)
+        responseText.setContentOffset(.zero, animated: true)
     }
     
     //REQUEST AND RESPONSE POPOVER ACTIONS
@@ -691,12 +701,12 @@ func verifyUrl(urlString: String?) -> Bool {
 func setBtnStyle(btn:UIButton, radius:Double, shadow:Double){
     btn.layer.cornerRadius = CGFloat(radius)
     btn.backgroundColor = UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1)
-    btn.layer.borderColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1).cgColor
-    btn.layer.borderWidth = 1
-    btn.layer.shadowColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5).cgColor
-    btn.layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
-    btn.layer.shadowOpacity = 1
-    btn.layer.shadowRadius = CGFloat(shadow)
+//    btn.layer.borderColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1).cgColor
+//    btn.layer.borderWidth = 0
+//    btn.layer.shadowColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5).cgColor
+//    btn.layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
+//    btn.layer.shadowOpacity = 1
+//    btn.layer.shadowRadius = CGFloat(shadow)
 }
 
 var bodyHeader:[String:String] = ["key":"","val":""]

@@ -31,7 +31,7 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate  {
         
         processApplicationContext()
         
-        self.sendBtn.setBackgroundColor(UIColor(red: 0.4, green: 0.6, blue: 0.6, alpha: 1.0))
+        self.sendBtn.setBackgroundColor(UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1))
     }
     override func didDeactivate() {
         super.didDeactivate()
@@ -123,8 +123,8 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate  {
                 }
             } else {
                 vibrate(vib: .failure)
-                self.sendBtn.setTitle("BAD DATA");
-                self.sendBtn.setBackgroundColor(UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0))
+                self.sendBtn.setTitle("Missing URL");
+                self.sendBtn.setBackgroundColor(UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                     self.resetSendBtn()
                 }
@@ -134,7 +134,7 @@ class InterfaceController: WKInterfaceController, WCSessionDelegate  {
     
     func resetSendBtn(){
         self.sendBtn.setTitle("Send")
-        self.sendBtn.setBackgroundColor(UIColor(red: 0.4, green: 0.6, blue: 0.6, alpha: 1.0))
+        self.sendBtn.setBackgroundColor(UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1))
     }
     
     func showResponseView(str:String, code:Int){
