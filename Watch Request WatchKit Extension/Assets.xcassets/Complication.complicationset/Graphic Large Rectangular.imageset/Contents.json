@@ -2,23 +2,27 @@
   "images" : [
     {
       "idiom" : "watch",
-      "scale" : "2x",
-      "screen-width" : "<=145"
+      "filename" : "icon-300-94.png",
+      "screen-width" : "<=145",
+      "scale" : "2x"
     },
     {
       "idiom" : "watch",
-      "scale" : "2x",
-      "screen-width" : ">161"
+      "filename" : "icon-300-95.png",
+      "screen-width" : ">161",
+      "scale" : "2x"
     },
     {
       "idiom" : "watch",
-      "scale" : "2x",
-      "screen-width" : ">145"
+      "filename" : "icon-300-96.png",
+      "screen-width" : ">145",
+      "scale" : "2x"
     },
     {
       "idiom" : "watch",
-      "scale" : "2x",
-      "screen-width" : ">183"
+      "filename" : "icon-342-108.png",
+      "screen-width" : ">183",
+      "scale" : "2x"
     }
   ],
   "info" : {
