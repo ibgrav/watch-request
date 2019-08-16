@@ -34,38 +34,46 @@ class LandingViewController: UIViewController, WCSessionDelegate {
     
     @IBAction func sendWatchPress(_ sender: UIButton) {
         sendWatchBtn.isEnabled = false
+        let topTabVal = UserDefaults.standard.integer(forKey: "topTab")
+        var data:[String:String] = [:]
+        var bodyHead:[String:String] = ["key":"","val":""]
         
-        let method = UserDefaults.standard.string(forKey: "method") ?? ""
-        let url = UserDefaults.standard.string(forKey: "url") ?? ""
-        let body = UserDefaults.standard.string(forKey: "body") ?? ""
-        let bodyType = UserDefaults.standard.string(forKey: "body") ?? ""
-        let headOneVal = UserDefaults.standard.string(forKey: "headOneVal") ?? ""
-        let headTwoVal = UserDefaults.standard.string(forKey: "headTwoVal") ?? ""
-        let headThreeVal = UserDefaults.standard.string(forKey: "headThreeVal") ?? ""
-        let headFourVal = UserDefaults.standard.string(forKey: "headFourVal") ?? ""
-        let headOneKey = UserDefaults.standard.string(forKey: "headOneKey") ?? ""
-        let headTwoKey = UserDefaults.standard.string(forKey: "headTwoKey") ?? ""
-        let headThreeKey = UserDefaults.standard.string(forKey: "headThreeKey") ?? ""
-        let headFourKey = UserDefaults.standard.string(forKey: "headFourKey") ?? ""
-        let debugMode = UserDefaults.standard.bool(forKey: "watchDebugMode")
+        switch topTabVal {
+        case 0: data = req1
+        case 1: data = req2
+        case 2: data = req3
+        case 3: data = req4
+        default: break
+        }
         
-        if(verifyUrl(urlString: url)) {
+        switch data["bodyType"] {
+        case "0": bodyHead = ["key":"","val":""]
+        case "1": bodyHead = ["key":"Content-Type","val":"text/plain"]
+        case "2": bodyHead = ["key":"Content-Type","val":"application/json"]
+        case "3": bodyHead = ["key":"Content-Type","val":"application/xml"]
+        default:break
+        }
+        
+        let debugMode = UserDefaults.standard.string(forKey: "watchDebugMode") ?? ""
+        
+        if(verifyUrl(urlString: data["url"])) {
             
             if let validSession = session {
                 //all items to pass to watch
-                let iPhoneAppContext:[String:Any] = [
-                    "method": method,
-                    "url": url,
-                    "body": body,
-                    "bodyType": bodyType,
-                    "headOneVal": headOneVal,
-                    "headTwoVal": headTwoVal,
-                    "headThreeVal": headThreeVal,
-                    "headFourVal": headFourVal,
-                    "headOneKey": headOneKey,
-                    "headTwoKey": headTwoKey,
-                    "headThreeKey": headThreeKey,
-                    "headFourKey": headFourKey,
+                let iPhoneAppContext:[String:String] = [
+                    "method": data["method"] ?? "",
+                    "url": data["url"] ?? "",
+                    "body": data["body"] ?? "",
+                    "bodyHeadVal": bodyHead["val"] ?? "",
+                    "bodyHeadKey": bodyHead["key"] ?? "",
+                    "headOneVal": data["headOneVal"] ?? "",
+                    "headTwoVal": data["headTwoVal"] ?? "",
+                    "headThreeVal": data["headThreeVal"] ?? "",
+                    "headFourVal": data["headFourVal"] ?? "",
+                    "headOneKey": data["headOneKey"] ?? "",
+                    "headTwoKey": data["headTwoKey"] ?? "",
+                    "headThreeKey": data["headThreeKey"] ?? "",
+                    "headFourKey": data["headFourKey"] ?? "",
                     "debugMode": debugMode
                     ]
                 
@@ -90,8 +98,8 @@ class LandingViewController: UIViewController, WCSessionDelegate {
     func resetSendWatchBtn(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.sendWatchBtn.isEnabled = true;
-            self.sendWatchBtn.setTitle("Ready Watch", for: .normal)
-            self.sendWatchBtn.backgroundColor = UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1)
+            self.sendWatchBtn.setTitle("Send to Watch", for: .normal)
+            setBtnStyle(btn:self.sendWatchBtn, radius:20.0, shadow:5.0)
         }
     }
 }
@@ -101,12 +109,21 @@ class InfoViewController: UIViewController {
     @IBOutlet var watchDebugSwitch: UISwitch!
     
     override func viewWillDisappear(_ animated: Bool) {
-        UserDefaults.standard.set(watchDebugSwitch.isOn, forKey: "watchDebugMode")
+        if(watchDebugSwitch.isOn) {
+            UserDefaults.standard.set("true", forKey: "watchDebugMode")
+        } else {
+            UserDefaults.standard.set("false", forKey: "watchDebugMode")
+        }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let debugMode:Bool = UserDefaults.standard.bool(forKey: "watchDebugMode")
-        watchDebugSwitch.isOn = debugMode
+        let debugMode:String = UserDefaults.standard.string(forKey: "watchDebugMode") ?? ""
+        if(debugMode == "true") {
+            watchDebugSwitch.isOn = true
+        } else {
+            watchDebugSwitch.isOn = false
+        }
     }
     
     override func viewDidLoad() {
@@ -114,7 +131,7 @@ class InfoViewController: UIViewController {
     }
 }
 
-class RequestViewController: UIViewController {
+class RequestViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet var httpMethod: UISegmentedControl!
     @IBOutlet var httpUrl: UITextField!
@@ -125,96 +142,255 @@ class RequestViewController: UIViewController {
     @IBOutlet var httpSendBtn: UIButton!
     @IBOutlet var httpHeadersOutput: UITextView!
     @IBOutlet var httpHeadCounter: UIStepper!
+    @IBOutlet var topTab: UISegmentedControl!
     
     override func viewWillDisappear(_ animated: Bool) {
+        let tabBarVal:Int = topTab.selectedSegmentIndex
+        UserDefaults.standard.set(topTab.selectedSegmentIndex, forKey: "topTab")
         
-        var methodText = "GET";
-        switch httpMethod.selectedSegmentIndex {
-        case 0: methodText = "GET"
-        case 1: methodText = "POST"
-        case 2: methodText = "PUT"
-        case 3: methodText = "DELETE"
-        default: break
+        if(tabBarVal == 0){
+            req1["url"] = self.httpUrl.text
+            req1["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req1["body"] = self.httpBody.text
+            req1["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req1["headerKey"] = self.httpHeaderKey.text
+            req1["headerVal"] = self.httpHeaderVal.text
+            req1["headCount"] = String(self.httpHeadCounter.value)
+            req1["headOneKey"] = headOne["key"]
+            req1["headOneVal"] = headOne["val"]
+            req1["headTwoKey"] = headTwo["key"]
+            req1["headTwoVal"] = headTwo["val"]
+            req1["headThreeKey"] = headThree["key"]
+            req1["headThreeVal"] = headThree["val"]
+            req1["headFourKey"] = headFour["key"]
+            req1["headFourVal"] = headFour["val"]
+        } else if(tabBarVal == 1){
+            req2["url"] = self.httpUrl.text
+            req2["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req2["body"] = self.httpBody.text
+            req2["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req2["headerKey"] = self.httpHeaderKey.text
+            req2["headerVal"] = self.httpHeaderVal.text
+            req2["headCount"] = String(self.httpHeadCounter.value)
+            req2["headOneKey"] = headOne["key"]
+            req2["headOneVal"] = headOne["val"]
+            req2["headTwoKey"] = headTwo["key"]
+            req2["headTwoVal"] = headTwo["val"]
+            req2["headThreeKey"] = headThree["key"]
+            req2["headThreeVal"] = headThree["val"]
+            req2["headFourKey"] = headFour["key"]
+            req2["headFourVal"] = headFour["val"]
+        } else if(tabBarVal == 2){
+            req3["url"] = self.httpUrl.text
+            req3["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req3["body"] = self.httpBody.text
+            req3["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req3["headerKey"] = self.httpHeaderKey.text
+            req3["headerVal"] = self.httpHeaderVal.text
+            req3["headCount"] = String(self.httpHeadCounter.value)
+            req3["headOneKey"] = headOne["key"]
+            req3["headOneVal"] = headOne["val"]
+            req3["headTwoKey"] = headTwo["key"]
+            req3["headTwoVal"] = headTwo["val"]
+            req3["headThreeKey"] = headThree["key"]
+            req3["headThreeVal"] = headThree["val"]
+            req3["headFourKey"] = headFour["key"]
+            req3["headFourVal"] = headFour["val"]
+        } else if(tabBarVal == 3){
+            req4["url"] = self.httpUrl.text
+            req4["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req4["body"] = self.httpBody.text
+            req4["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req4["headerKey"] = self.httpHeaderKey.text
+            req4["headerVal"] = self.httpHeaderVal.text
+            req4["headCount"] = String(self.httpHeadCounter.value)
+            req4["headOneKey"] = headOne["key"]
+            req4["headOneVal"] = headOne["val"]
+            req4["headTwoKey"] = headTwo["key"]
+            req4["headTwoVal"] = headTwo["val"]
+            req4["headThreeKey"] = headThree["key"]
+            req4["headThreeVal"] = headThree["val"]
+            req4["headFourKey"] = headFour["key"]
+            req4["headFourVal"] = headFour["val"]
         }
         
-        UserDefaults.standard.set(httpUrl.text, forKey: "url")
-        UserDefaults.standard.set(httpBody.text, forKey: "body")
-        UserDefaults.standard.set(httpBodyType.selectedSegmentIndex, forKey: "bodyType")
-        UserDefaults.standard.set(methodText, forKey: "method")
-        UserDefaults.standard.set(bodyHeader["val"], forKey: "bodyHeadVal")
-        UserDefaults.standard.set(bodyHeader["key"], forKey: "bodyHeadKey")
-        UserDefaults.standard.set(headOne["val"], forKey: "headOneVal")
-        UserDefaults.standard.set(headTwo["val"], forKey: "headTwoVal")
-        UserDefaults.standard.set(headThree["val"], forKey: "headThreeVal")
-        UserDefaults.standard.set(headFour["val"], forKey: "headFourVal")
-        UserDefaults.standard.set(headOne["key"], forKey: "headOneKey")
-        UserDefaults.standard.set(headTwo["key"], forKey: "headTwoKey")
-        UserDefaults.standard.set(headThree["key"], forKey: "headThreeKey")
-        UserDefaults.standard.set(headFour["key"], forKey: "headFourKey")
-        
-        UserDefaults.standard.set(httpHeadCounter.value, forKey: "headCount")
+        UserDefaults.standard.set(req1, forKey: "req1")
+        UserDefaults.standard.set(req2, forKey: "req2")
+        UserDefaults.standard.set(req3, forKey: "req3")
+        UserDefaults.standard.set(req4, forKey: "req4")
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let url = UserDefaults.standard.string(forKey: "url") ?? ""
-        let body = UserDefaults.standard.string(forKey: "body") ?? ""
-        let bodyType = UserDefaults.standard.integer(forKey: "bodyType")
-        let headKey = UserDefaults.standard.string(forKey: "headKey") ?? ""
-        let headVal = UserDefaults.standard.string(forKey: "headVal") ?? ""
-        let method = UserDefaults.standard.string(forKey: "method") ?? ""
-        let headCount = UserDefaults.standard.double(forKey: "headCount")
+        //CLOSE KEYBOARD ON TAP
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
         
-        httpHeadCounter.value = headCount
+        let topTabVal:Int = UserDefaults.standard.integer(forKey: "topTab")
+        topTab.selectedSegmentIndex = topTabVal
         
-        bodyHeader["key"] = UserDefaults.standard.string(forKey: "bodyHeadKey")
-        bodyHeader["val"] = UserDefaults.standard.string(forKey: "bodyHeadVal")
+        if(UserDefaults.standard.dictionary(forKey: "req1") != nil){
+            req1 = UserDefaults.standard.dictionary(forKey: "req1") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req2") != nil){
+            req2 = UserDefaults.standard.dictionary(forKey: "req2") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req3") != nil){
+            req3 = UserDefaults.standard.dictionary(forKey: "req3") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req4") != nil){
+            req4 = UserDefaults.standard.dictionary(forKey: "req4") as! [String : String]
+        }
         
-        headOne["key"] = UserDefaults.standard.string(forKey: "headOneKey")
-        headTwo["key"] = UserDefaults.standard.string(forKey: "headTwoKey")
-        headThree["key"] = UserDefaults.standard.string(forKey: "headThreeKey")
-        headFour["key"] = UserDefaults.standard.string(forKey: "headFourKey")
-        
-        headOne["val"] = UserDefaults.standard.string(forKey: "headOneVal")
-        headTwo["val"] = UserDefaults.standard.string(forKey: "headTwoVal")
-        headThree["val"] = UserDefaults.standard.string(forKey: "headThreeVal")
-        headFour["val"] = UserDefaults.standard.string(forKey: "headFourVal")
+        if(topTabVal == 0){
+            setReqData(data:req1)
+        } else if(topTabVal == 1){
+            setReqData(data:req2)
+        } else if(topTabVal == 2){
+            setReqData(data:req3)
+        } else if(topTabVal == 3){
+            setReqData(data:req4)
+        } else {
+            setReqData(data:req1)
+        }
         
         updateHeaderOutput()
-        
-        headOne != [:] ? httpHeadCounter.value = 1.0 : nil
-        headTwo != [:] ? httpHeadCounter.value = 2.0 : nil
-        headThree != [:] ? httpHeadCounter.value = 3.0 : nil
-        headFour != [:] ? httpHeadCounter.value = 4.0 : nil
-        
-        httpUrl.text = url
-        httpBody.text = body
-        httpHeaderKey.text = headKey
-        httpHeaderVal.text = headVal
-    
-        httpBodyType.selectedSegmentIndex = bodyType
-        
-        switch method {
-        case "GET": httpMethod.selectedSegmentIndex = 0
-        case "POST": httpMethod.selectedSegmentIndex = 1
-        case "PUT": httpMethod.selectedSegmentIndex = 2
-        case "DELETE": httpMethod.selectedSegmentIndex = 3
-        default: break
-        }
         
         httpBody.layer.borderColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.2).cgColor
         httpBody.layer.borderWidth = 0.5
         httpBody.layer.cornerRadius = 6.0
         
-        setSegmentStyle(seg:httpMethod)
-        setSegmentStyle(seg:httpBodyType)
+//        topTab.tintColor = UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1)
+        
         setBtnStyle(btn: httpSendBtn, radius:5.0, shadow:0.0)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.httpUrl.delegate = self
+        self.httpHeaderKey.delegate = self
+        self.httpHeaderVal.delegate = self
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        self.view.endEditing(true)
+        return false
+    }
+    
+    func setReqData(data:[String:String]){
+        self.httpUrl.text = data["url"]
+        self.httpMethod.selectedSegmentIndex = Int(data["method"]!) ?? 0
+        self.httpBody.text = data["body"]
+        self.httpBodyType.selectedSegmentIndex = Int(data["bodyType"]!) ?? 0
+        self.httpHeaderKey.text = data["headerKey"]
+        self.httpHeaderVal.text = data["headerVal"]
+        self.httpHeadCounter.value = Double(data["headCount"]!) ?? 0
+        
+        switch self.httpBodyType.selectedSegmentIndex {
+        case 0: bodyHeader = ["key":"","val":""]
+        case 1: bodyHeader = ["key":"Content-Type","val":"text/plain"]
+        case 2: bodyHeader = ["key":"Content-Type","val":"application/json"]
+        case 3: bodyHeader = ["key":"Content-Type","val":"application/xml"]
+        default: break
+        }
+
+        headOne["key"] = data["headOneKey"]
+        headTwo["key"] = data["headTwoKey"]
+        headThree["key"] = data["headThreeKey"]
+        headFour["key"] = data["HeadFourKey"]
+
+        headOne["val"] = data["headOneVal"]
+        headTwo["val"] = data["headTwoVal"]
+        headThree["val"] = data["headThreeVal"]
+        headFour["val"] = data["HeadFourVal"]
     }
     
     //HTTP SETTINGS ACTIONS
+    @IBAction func tabChange(_ sender: UISegmentedControl) {
+        let lastTab = UserDefaults.standard.integer(forKey: "topTab")
+        if(lastTab == 0){
+            req1["url"] = self.httpUrl.text
+            req1["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req1["body"] = self.httpBody.text
+            req1["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req1["headerKey"] = self.httpHeaderKey.text
+            req1["headerVal"] = self.httpHeaderVal.text
+            req1["headCount"] = String(self.httpHeadCounter.value)
+            req1["headOneKey"] = headOne["key"]
+            req1["headOneVal"] = headOne["val"]
+            req1["headTwoKey"] = headTwo["key"]
+            req1["headTwoVal"] = headTwo["val"]
+            req1["headThreeKey"] = headThree["key"]
+            req1["headThreeVal"] = headThree["val"]
+            req1["headFourKey"] = headFour["key"]
+            req1["headFourVal"] = headFour["val"]
+        } else if(lastTab == 1){
+            req2["url"] = self.httpUrl.text
+            req2["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req2["body"] = self.httpBody.text
+            req2["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req2["headerKey"] = self.httpHeaderKey.text
+            req2["headerVal"] = self.httpHeaderVal.text
+            req2["headCount"] = String(self.httpHeadCounter.value)
+            req2["headOneKey"] = headOne["key"]
+            req2["headOneVal"] = headOne["val"]
+            req2["headTwoKey"] = headTwo["key"]
+            req2["headTwoVal"] = headTwo["val"]
+            req2["headThreeKey"] = headThree["key"]
+            req2["headThreeVal"] = headThree["val"]
+            req2["headFourKey"] = headFour["key"]
+            req2["headFourVal"] = headFour["val"]
+        } else if(lastTab == 2){
+            req3["url"] = self.httpUrl.text
+            req3["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req3["body"] = self.httpBody.text
+            req3["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req3["headerKey"] = self.httpHeaderKey.text
+            req3["headerVal"] = self.httpHeaderVal.text
+            req3["headCount"] = String(self.httpHeadCounter.value)
+            req3["headOneKey"] = headOne["key"]
+            req3["headOneVal"] = headOne["val"]
+            req3["headTwoKey"] = headTwo["key"]
+            req3["headTwoVal"] = headTwo["val"]
+            req3["headThreeKey"] = headThree["key"]
+            req3["headThreeVal"] = headThree["val"]
+            req3["headFourKey"] = headFour["key"]
+            req3["headFourVal"] = headFour["val"]
+        } else if(lastTab == 3){
+            req4["url"] = self.httpUrl.text
+            req4["method"] = String(self.httpMethod.selectedSegmentIndex)
+            req4["body"] = self.httpBody.text
+            req4["bodyType"] = String(self.httpBodyType.selectedSegmentIndex)
+            req4["headerKey"] = self.httpHeaderKey.text
+            req4["headerVal"] = self.httpHeaderVal.text
+            req4["headCount"] = String(self.httpHeadCounter.value)
+            req4["headOneKey"] = headOne["key"]
+            req4["headOneVal"] = headOne["val"]
+            req4["headTwoKey"] = headTwo["key"]
+            req4["headTwoVal"] = headTwo["val"]
+            req4["headThreeKey"] = headThree["key"]
+            req4["headThreeVal"] = headThree["val"]
+            req4["headFourKey"] = headFour["key"]
+            req4["headFourVal"] = headFour["val"]
+        }
+        
+        if(sender.selectedSegmentIndex == 0){
+            setReqData(data:req1)
+        } else if(sender.selectedSegmentIndex == 1){
+            setReqData(data:req2)
+        } else if(sender.selectedSegmentIndex == 2){
+            setReqData(data:req3)
+        } else if(sender.selectedSegmentIndex == 3){
+            setReqData(data:req4)
+        } else {
+            setReqData(data:req1)
+        }
+        
+        UserDefaults.standard.set(sender.selectedSegmentIndex, forKey: "topTab")
+        
+        updateHeaderOutput()
+    }
     
     @IBAction func bodyTypeChanged(_ sender: UISegmentedControl) {
         let currentVal = sender.selectedSegmentIndex
@@ -222,14 +398,12 @@ class RequestViewController: UIViewController {
         print(currentVal)
         
         switch currentVal {
-        case 0: bodyHeader = [:]
+        case 0: bodyHeader = ["key":"","val":""]
         case 1: bodyHeader = ["key":"Content-Type","val":"text/plain"]
         case 2: bodyHeader = ["key":"Content-Type","val":"application/json"]
         case 3: bodyHeader = ["key":"Content-Type","val":"application/xml"]
         default: break
         }
-        
-        print(bodyHeader)
         
         updateHeaderOutput()
     }
@@ -259,7 +433,7 @@ class RequestViewController: UIViewController {
                     sender.value -= 1.0;
                 }
             } else {
-                headFour = [:]
+                headFour = ["key":"","val":""]
             }
         } else if(count == 2){
             if(count > prevCount){
@@ -270,7 +444,7 @@ class RequestViewController: UIViewController {
                     sender.value -= 1.0;
                 }
             } else {
-                headThree = [:]
+                headThree = ["key":"","val":""]
             }
         } else if(count == 1){
             if(count > prevCount){
@@ -281,10 +455,10 @@ class RequestViewController: UIViewController {
                     sender.value -= 1.0;
                 }
             } else {
-                headTwo = [:]
+                headTwo = ["key":"","val":""]
             }
         } else if(count == 0){
-            headOne = [:]; headTwo = [:]; headThree = [:]; headFour = [:]
+            headOne = ["key":"","val":""]; headTwo = ["key":"","val":""]; headThree = ["key":"","val":""]; headFour = ["key":"","val":""]
         }
         
         updateHeaderOutput()
@@ -322,23 +496,23 @@ class RequestViewController: UIViewController {
                 var request = URLRequest(url: URL(string: url)!)
                 request.httpMethod = method
                 
-                if(bodyHeader["key"] != nil && bodyHeader["val"] != nil) {
+                if(bodyHeader != ["key":"","val":""]) {
                     request.setValue(bodyHeader["val"], forHTTPHeaderField: bodyHeader["key"] ?? "")
                     headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")"
                 }
-                if(headOne["key"] != nil && headOne["val"] != nil) {
+                if(headOne != ["key":"","val":""]) {
                     request.setValue(headOne["val"], forHTTPHeaderField: headOne["key"] ?? "")
                     headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")"
                 }
-                if(headTwo["key"] != nil && headTwo["val"] != nil) {
+                if(headTwo != ["key":"","val":""]) {
                     request.setValue(headTwo["val"], forHTTPHeaderField: headTwo["key"] ?? "")
                     headerVals += ", \(headTwo["key"] ?? ""): \(headTwo["val"] ?? "")"
                 }
-                if(headThree["key"] != nil && headThree["val"] != nil) {
+                if(headThree != ["key":"","val":""]) {
                     request.setValue(headThree["val"], forHTTPHeaderField: headThree["key"] ?? "")
                     headerVals += ", \(headThree["key"] ?? ""): \(headThree["val"] ?? "")"
                 }
-                if(headFour["key"] != nil && headFour["val"] != nil) {
+                if(headFour != ["key":"","val":""]) {
                     request.setValue(headFour["val"], forHTTPHeaderField: headFour["key"] ?? "")
                     headerVals += ", \(headFour["key"] ?? ""): \(headFour["val"] ?? "")"
                 }
@@ -369,7 +543,6 @@ class RequestViewController: UIViewController {
                     
                     do {
                         if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-//                                print(json)
                             let output = stringify(json: json, prettyPrinted: true)
                             self.showResponseView(str:output, code:statusMsg)
                             self.resetSendBtn()
@@ -406,11 +579,15 @@ class RequestViewController: UIViewController {
     func updateHeaderOutput(){
         var headerText:String = ""
         
-        bodyHeader != [:] ? headerText += "\(bodyHeader["key"] ?? "") : \(bodyHeader["val"] ?? "")\n" : nil
-        headOne != [:] ? headerText += "\(headOne["key"] ?? "") : \(headOne["val"] ?? "")\n" : nil
-        headTwo != [:] ? headerText += "\(headTwo["key"] ?? "") : \(headTwo["val"] ?? "")\n" : nil
-        headThree != [:] ? headerText += "\(headThree["key"] ?? "") : \(headThree["val"] ?? "")\n" : nil
-        headFour != [:] ? headerText += "\(headFour["key"] ?? "") : \(headFour["val"] ?? "")" : nil
+        if(headFour == [:]){
+            headFour = ["key":"","val":""]
+        }
+        
+        bodyHeader != ["key":"","val":""] ? headerText += "\(bodyHeader["key"] ?? "") : \(bodyHeader["val"] ?? "")\n" : nil
+        headOne != ["key":"","val":""] ? headerText += "\(headOne["key"] ?? "") : \(headOne["val"] ?? "")\n" : nil
+        headTwo != ["key":"","val":""] ? headerText += "\(headTwo["key"] ?? "") : \(headTwo["val"] ?? "")\n" : nil
+        headThree != ["key":"","val":""] ? headerText += "\(headThree["key"] ?? "") : \(headThree["val"] ?? "")\n" : nil
+        headFour != ["key":"","val":""] ? headerText += "\(headFour["key"] ?? "") : \(headFour["val"] ?? "")" : nil
         
         httpHeadersOutput.text = headerText
     }
@@ -522,17 +699,77 @@ func setBtnStyle(btn:UIButton, radius:Double, shadow:Double){
     btn.layer.shadowRadius = CGFloat(shadow)
 }
 
-func setSegmentStyle(seg:UISegmentedControl){
-//    seg.layer.cornerRadius = CGFloat(5.0)
-//    seg.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
-//    seg.layer.shadowColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.25).cgColor
-//    seg.layer.shadowOffset = CGSize(width: 1.0, height: 1.0)
-//    seg.layer.shadowOpacity = 1.0
-//    seg.layer.shadowRadius = 5.0
-}
+var bodyHeader:[String:String] = ["key":"","val":""]
+var headOne:[String:String] = ["key":"","val":""]
+var headTwo:[String:String] = ["key":"","val":""]
+var headThree:[String:String] = ["key":"","val":""]
+var headFour:[String:String] = ["key":"","val":""]
 
-var bodyHeader:[String:String] = [:]
-var headOne:[String:String] = [:]
-var headTwo:[String:String] = [:]
-var headThree:[String:String] = [:]
-var headFour:[String:String] = [:]
+var req1:[String:String] = [
+    "url":"",
+    "method":"0",
+    "body":"",
+    "bodyType":"0",
+    "headerKey":"",
+    "headerVal":"",
+    "headCount":"0",
+    "headOneKey":"",
+    "headOneVal":"",
+    "headTwoKey":"",
+    "headTwoVal":"",
+    "headThreeKey":"",
+    "headThreeVal":"",
+    "headFourKey":"",
+    "headFourVal":""
+]
+var req2:[String:String] = [
+    "url":"",
+    "method":"0",
+    "body":"",
+    "bodyType":"0",
+    "headerKey":"",
+    "headerVal":"",
+    "headCount":"0",
+    "headOneKey":"",
+    "headOneVal":"",
+    "headTwoKey":"",
+    "headTwoVal":"",
+    "headThreeKey":"",
+    "headThreeVal":"",
+    "headFourKey":"",
+    "headFourVal":""
+]
+var req3:[String:String] = [
+    "url":"",
+    "method":"0",
+    "body":"",
+    "bodyType":"0",
+    "headerKey":"",
+    "headerVal":"",
+    "headCount":"0",
+    "headOneKey":"",
+    "headOneVal":"",
+    "headTwoKey":"",
+    "headTwoVal":"",
+    "headThreeKey":"",
+    "headThreeVal":"",
+    "headFourKey":"",
+    "headFourVal":""
+]
+var req4:[String:String] = [
+    "url":"",
+    "method":"0",
+    "body":"",
+    "bodyType":"0",
+    "headerKey":"",
+    "headerVal":"",
+    "headCount":"0",
+    "headOneKey":"",
+    "headOneVal":"",
+    "headTwoKey":"",
+    "headTwoVal":"",
+    "headThreeKey":"",
+    "headThreeVal":"",
+    "headFourKey":"",
+    "headFourVal":""
+]

@@ -9,15 +9,15 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="14490.21"/>
     </dependencies>
     <scenes>
-        <!--Interface Controller-->
+        <!--send-->
         <scene sceneID="aou-V4-d1y">
             <objects>
-                <controller id="AgC-eL-Hgc" customClass="InterfaceController" customModule="Watch_Request_WatchKit_App" customModuleProvider="target">
+                <controller identifier="send" fullScreen="YES" id="AgC-eL-Hgc" customClass="InterfaceController" customModule="Watch_Request_WatchKit_Extension">
                     <items>
                         <button width="1" height="1" alignment="center" verticalAlignment="center" title="Send" id="P7d-kE-zJr">
                             <color key="titleColor" red="0.9692981839" green="0.91799014810000001" blue="0.86778366569999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <color key="backgroundColor" red="0.047058823530000002" green="0.5182340741" blue="0.56443077330000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                            <fontDescription key="font" type="boldSystem" pointSize="30"/>
+                            <fontDescription key="font" type="boldSystem" pointSize="40"/>
                             <connections>
                                 <action selector="sendBtnPress" destination="AgC-eL-Hgc" id="N0F-p5-KTu"/>
                             </connections>
@@ -28,6 +28,21 @@
                     </connections>
                 </controller>
             </objects>
+            <point key="canvasLocation" x="29" y="31"/>
+        </scene>
+        <!--response-->
+        <scene sceneID="9R4-HD-fnY">
+            <objects>
+                <controller identifier="response" fullScreen="YES" id="w99-i8-WiX" customClass="ResponseInterfaceController" customModule="Watch_Request_WatchKit_Extension">
+                    <items>
+                        <label alignment="left" text="Response" textAlignment="left" numberOfLines="0" id="LSM-E5-anU"/>
+                    </items>
+                    <connections>
+                        <outlet property="outputText" destination="LSM-E5-anU" id="zuJ-rB-XOH"/>
+                    </connections>
+                </controller>
+            </objects>
+            <point key="canvasLocation" x="328" y="31"/>
         </scene>
     </scenes>
 </document>

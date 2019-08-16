@@ -7,11 +7,17 @@
 //
 
 import WatchKit
+import WatchConnectivity
 
-class ExtensionDelegate: NSObject, WKExtensionDelegate {
+class ExtensionDelegate: NSObject, WKExtensionDelegate, WCSessionDelegate {
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) { }
+    let session = WCSession.default
 
     func applicationDidFinishLaunching() {
-        // Perform any final initialization of your application.
+        session.delegate = self
+        session.activate()
+        
+        processApplicationContext()
     }
 
     func applicationDidBecomeActive() {
@@ -52,5 +58,31 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate {
             }
         }
     }
-
+    
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        DispatchQueue.main.async() {
+            self.processApplicationContext()
+        }
+    }
+    
+    func processApplicationContext() {
+        if let iPhoneContext = session.receivedApplicationContext as? [String : String] {
+            globs["method"] = iPhoneContext["method"] ?? "";
+            globs["url"] = iPhoneContext["url"] ?? "";
+            globs["body"] = iPhoneContext["body"] ?? "";
+            globs["bodyHeadKey"] = iPhoneContext["bodyHeadKey"] ?? "";
+            globs["bodyHeadVal"] = iPhoneContext["bodyHeadVal"] ?? "";
+            globs["headOneVal"] = iPhoneContext["headOneVal"] ?? "";
+            globs["headTwoVal"] = iPhoneContext["headTwoVal"] ?? "";
+            globs["headThreeVal"] = iPhoneContext["headThreeVal"] ?? "";
+            globs["headFourVal"] = iPhoneContext["headFourVal"] ?? "";
+            globs["headOneKey"] = iPhoneContext["headOneKey"] ?? "";
+            globs["headTwoKey"] = iPhoneContext["headTwoKey"] ?? "";
+            globs["headThreeKey"] = iPhoneContext["headThreeKey"] ?? "";
+            globs["headFourKey"] = iPhoneContext["headFourKey"] ?? "";
+            globs["debugMode"] = iPhoneContext["debugMode"] ?? "";
+        }
+    }
 }
+
+var globs:[String:String] = [:]
