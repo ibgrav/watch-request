@@ -1,0 +1,16 @@
+{
+  "supported complication families" : {
+    "7" : "BB46D2A2-74A1-42D8-8C52-B1DCC0D568CA.json",
+    "3" : "F8D4DCD2-E310-4A41-B498-7F41C4EEF1CE.json",
+    "8" : "7907FAEF-DF8E-45C4-9CC7-C21EE9431DED.json",
+    "11" : "B1E2AD7F-E97F-44D5-A325-4890AA874F6E.json",
+    "0" : "57062B29-ED46-43C2-817A-A873A67421CD.json",
+    "4" : "484028FA-A19C-4B7E-A011-9A1054BCDFA8.json",
+    "9" : "D99B6C00-931A-41B5-9309-8AD500E12DEB.json",
+    "1" : "0C9E7AAC-4755-413F-A54B-7B2A77346EAB.json",
+    "6" : "784D9675-A25D-4807-8EF9-9036ADB83166.json",
+    "10" : "DDF72D52-7133-4551-BE14-45C1B5AA435E.json",
+    "2" : "96F4CA1E-C971-41F3-B502-8C9F0C5E5DD3.json"
+  },
+  "client ID" : "dev.ibgrav.Watch-Request.watchkitapp.watchkitextension"
+}

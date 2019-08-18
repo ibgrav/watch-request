@@ -10,7 +10,7 @@ import ClockKit
 
 
 class ComplicationController: NSObject, CLKComplicationDataSource {
-    
+    let tintColor = UIColor(red: 1.0/255.0, green: 152.0/255.0, blue: 117.0/255.0, alpha: 1)
     // MARK: - Timeline Configuration
     
     func getSupportedTimeTravelDirections(for complication: CLKComplication, withHandler handler: @escaping (CLKComplicationTimeTravelDirections) -> Void) {
@@ -47,10 +47,4 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     }
     
     // MARK: - Placeholder Templates
-    
-    func getLocalizableSampleTemplate(for complication: CLKComplication, withHandler handler: @escaping (CLKComplicationTemplate?) -> Void) {
-        // This method will be called once per supported complication, and the results will be cached
-        handler(nil)
-    }
-    
 }
