@@ -1,11 +1,3 @@
-//
-//  AppDelegate.swift
-//  Watch Request
-//
-//  Created by Isaac Graves on 8/9/19.
-//  Copyright © 2019 ibgrav. All rights reserved.
-//
-
 import UIKit
 
 @UIApplicationMain

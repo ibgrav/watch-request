@@ -1,11 +1,3 @@
-//
-//  ExtensionDelegate.swift
-//  Watch Request WatchKit Extension
-//
-//  Created by Isaac Graves on 8/9/19.
-//  Copyright © 2019 ibgrav. All rights reserved.
-//
-
 import WatchKit
 import WatchConnectivity
 
@@ -30,9 +22,9 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate, WCSessionDelegate {
     }
 
     func handle(_ backgroundTasks: Set<WKRefreshBackgroundTask>) {
-        // Sent when the system needs to launch the application in the background to process tasks. Tasks arrive in a set, so loop through and process each one.
+//         Sent when the system needs to launch the application in the background to process tasks. Tasks arrive in a set, so loop through and process each one.
         for task in backgroundTasks {
-            // Use a switch statement to check the task type
+//             Use a switch statement to check the task type
             switch task {
             case let backgroundTask as WKApplicationRefreshBackgroundTask:
                 // Be sure to complete the background task once you’re done.
@@ -46,12 +38,6 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate, WCSessionDelegate {
             case let urlSessionTask as WKURLSessionRefreshBackgroundTask:
                 // Be sure to complete the URL session task once you’re done.
                 urlSessionTask.setTaskCompletedWithSnapshot(false)
-            case let relevantShortcutTask as WKRelevantShortcutRefreshBackgroundTask:
-                // Be sure to complete the relevant-shortcut task once you're done.
-                relevantShortcutTask.setTaskCompletedWithSnapshot(false)
-            case let intentDidRunTask as WKIntentDidRunRefreshBackgroundTask:
-                // Be sure to complete the intent-did-run task once you're done.
-                intentDidRunTask.setTaskCompletedWithSnapshot(false)
             default:
                 // make sure to complete unhandled task types
                 task.setTaskCompletedWithSnapshot(false)
@@ -81,6 +67,7 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate, WCSessionDelegate {
             globs["headThreeKey"] = iPhoneContext["headThreeKey"] ?? "";
             globs["headFourKey"] = iPhoneContext["headFourKey"] ?? "";
             globs["debugMode"] = iPhoneContext["debugMode"] ?? "";
+            globs["watchBtnTitle"] = iPhoneContext["watchBtnTitle"] ?? "Send";
         }
     }
 }

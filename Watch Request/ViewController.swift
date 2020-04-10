@@ -1,11 +1,3 @@
-//
-//  ViewController.swift
-//  Watch Request
-//
-//  Created by Isaac Graves on 8/9/19.
-//  Copyright © 2019 ibgrav. All rights reserved.
-//
-
 import UIKit
 import WatchConnectivity
 
@@ -20,6 +12,19 @@ class LandingViewController: UIViewController, WCSessionDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         setBtnStyle(btn:sendWatchBtn, radius:20.0, shadow:5.0)
+        
+        if(UserDefaults.standard.dictionary(forKey: "req1") != nil){
+            req1 = UserDefaults.standard.dictionary(forKey: "req1") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req2") != nil){
+            req2 = UserDefaults.standard.dictionary(forKey: "req2") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req3") != nil){
+            req3 = UserDefaults.standard.dictionary(forKey: "req3") as! [String : String]
+        }
+        if(UserDefaults.standard.dictionary(forKey: "req4") != nil){
+            req4 = UserDefaults.standard.dictionary(forKey: "req4") as! [String : String]
+        }
     }
     
     override func viewDidLoad() {
@@ -35,15 +40,32 @@ class LandingViewController: UIViewController, WCSessionDelegate {
     @IBAction func sendWatchPress(_ sender: UIButton) {
         sendWatchBtn.isEnabled = false
         let topTabVal = UserDefaults.standard.integer(forKey: "topTab")
+        let remoteMode = UserDefaults.standard.string(forKey: "remoteMode") ?? "false"
         var data:[String:String] = [:]
         var bodyHead:[String:String] = ["key":"","val":""]
         
-        switch topTabVal {
-        case 0: data = req1
-        case 1: data = req2
-        case 2: data = req3
-        case 3: data = req4
-        default: break
+        if(remoteMode == "true"){
+            data = [
+                "method": UserDefaults.standard.string(forKey: "remoteMethod") ?? "GET",
+                "url": UserDefaults.standard.string(forKey: "remoteURL") ?? "",
+                "body": UserDefaults.standard.string(forKey: "remoteBody") ?? "",
+                "headOneVal": UserDefaults.standard.string(forKey: "remoteHeadOneVal") ?? "",
+                "headTwoVal": UserDefaults.standard.string(forKey: "remoteHeadTwoVal") ?? "",
+                "headThreeVal": UserDefaults.standard.string(forKey: "remoteHeadThreeVal") ?? "",
+                "headFourVal": UserDefaults.standard.string(forKey: "remoteHeadFourVal") ?? "",
+                "headOneKey": UserDefaults.standard.string(forKey: "remoteHeadOneKey") ?? "",
+                "headTwoKey": UserDefaults.standard.string(forKey: "remoteHeadTwoKey") ?? "",
+                "headThreeKey": UserDefaults.standard.string(forKey: "remoteHeadThreeKey") ?? "",
+                "headFourKey": UserDefaults.standard.string(forKey: "remoteHeadFourKey") ?? ""
+            ]
+        } else {
+            switch topTabVal {
+            case 0: data = req1
+            case 1: data = req2
+            case 2: data = req3
+            case 3: data = req4
+            default: break
+            }
         }
         
         switch data["bodyType"] {
@@ -55,6 +77,11 @@ class LandingViewController: UIViewController, WCSessionDelegate {
         }
         
         let debugMode = UserDefaults.standard.string(forKey: "watchDebugMode") ?? ""
+        let logPOST = UserDefaults.standard.string(forKey: "logPOST") ?? ""
+        let watchBtnTitle = UserDefaults.standard.string(forKey: "watchBtnTitle") ?? "Send"
+        let logURL = UserDefaults.standard.string(forKey: "logURL") ?? ""
+        let logKey = UserDefaults.standard.string(forKey: "logKey") ?? ""
+        let logVal = UserDefaults.standard.string(forKey: "logKey") ?? ""
         
         if(verifyUrl(urlString: data["url"])) {
             
@@ -74,14 +101,19 @@ class LandingViewController: UIViewController, WCSessionDelegate {
                     "headTwoKey": data["headTwoKey"] ?? "",
                     "headThreeKey": data["headThreeKey"] ?? "",
                     "headFourKey": data["headFourKey"] ?? "",
-                    "debugMode": debugMode
-                    ]
+                    "debugMode": debugMode,
+                    "watchBtnTitle": watchBtnTitle,
+                    "logPOST": logPOST,
+                    "logURL": logURL,
+                    "logKey": logKey,
+                    "logVal": logVal
+                ]
                 
                 do {
                     //send to watch
                     try validSession.updateApplicationContext(iPhoneAppContext)
                     self.sendWatchBtn.setTitle("Ready!", for: .normal)
-                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1)
+                    self.sendWatchBtn.backgroundColor = UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1);
                 } catch {
                     self.sendWatchBtn.setTitle("Watch Error", for: .normal)
                     self.sendWatchBtn.backgroundColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1)
@@ -100,13 +132,19 @@ class LandingViewController: UIViewController, WCSessionDelegate {
             self.sendWatchBtn.isEnabled = true;
             self.sendWatchBtn.setTitle("Send to Watch", for: .normal)
             setBtnStyle(btn:self.sendWatchBtn, radius:20.0, shadow:5.0)
+            self.sendWatchBtn.backgroundColor = UIColor(red: 0.2, green: 0.2, blue: 0.8, alpha: 1)
         }
     }
 }
 
-class InfoViewController: UIViewController {
+class InfoViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet var watchDebugSwitch: UISwitch!
+    @IBOutlet var logURL: UITextField!
+    @IBOutlet var watchBtnTitle: UITextField!
+    @IBOutlet var logKey: UITextField!
+    @IBOutlet var logVal: UITextField!
+    @IBOutlet var logPOST: UISwitch!
     
     override func viewWillDisappear(_ animated: Bool) {
         if(watchDebugSwitch.isOn) {
@@ -114,20 +152,63 @@ class InfoViewController: UIViewController {
         } else {
             UserDefaults.standard.set("false", forKey: "watchDebugMode")
         }
-        
+        if(logPOST.isOn) {
+            UserDefaults.standard.set("true", forKey: "logPOST")
+        } else {
+            UserDefaults.standard.set("false", forKey: "logPOST")
+        }
+        if(watchBtnTitle.text != ""){
+            UserDefaults.standard.set(watchBtnTitle.text, forKey: "watchBtnTitle")
+        } else {
+            UserDefaults.standard.set("Send", forKey: "watchBtnTitle")
+        }
+        if(logURL.text != ""){
+           UserDefaults.standard.set(logURL.text, forKey: "logURL")
+       } else {
+           UserDefaults.standard.set("", forKey: "logURL")
+       }
+        if(logKey.text != ""){
+            UserDefaults.standard.set(logKey.text, forKey: "logKey")
+        } else {
+            UserDefaults.standard.set("", forKey: "logKey")
+        }
+        if(logVal.text != ""){
+            UserDefaults.standard.set(logVal.text, forKey: "logVal")
+        } else {
+            UserDefaults.standard.set("", forKey: "logVal")
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         let debugMode:String = UserDefaults.standard.string(forKey: "watchDebugMode") ?? ""
+        let logMode:String = UserDefaults.standard.string(forKey: "logPOST") ?? ""
+        let watchBtnTitleText:String = UserDefaults.standard.string(forKey: "watchBtnTitle") ?? ""
+        let logURLText:String = UserDefaults.standard.string(forKey: "logURL") ?? ""
+        let logKeyText:String = UserDefaults.standard.string(forKey: "logKey") ?? ""
+        let logValText:String = UserDefaults.standard.string(forKey: "logVal") ?? ""
         if(debugMode == "true") {
             watchDebugSwitch.isOn = true
         } else {
             watchDebugSwitch.isOn = false
         }
+        if(logMode == "true") {
+            logPOST.isOn = true
+        } else {
+            logPOST.isOn = false
+        }
+        watchBtnTitle.text = watchBtnTitleText
+        logURL.text = logURLText
+        logKey.text = logKeyText
+        logVal.text = logValText
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //CLOSE KEYBOARD ON TAP
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
     }
 }
 
@@ -143,6 +224,7 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet var httpHeadersOutput: UITextView!
     @IBOutlet var httpHeadCounter: UIStepper!
     @IBOutlet var topTab: UISegmentedControl!
+    @IBOutlet var headersTitle: UILabel!
     
     override func viewWillDisappear(_ animated: Bool) {
         let tabBarVal:Int = topTab.selectedSegmentIndex
@@ -226,6 +308,8 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         tap.cancelsTouchesInView = false
         self.view.addGestureRecognizer(tap)
         
+        httpSendBtn.setTitle("Test", for: .normal)
+        
         let topTabVal:Int = UserDefaults.standard.integer(forKey: "topTab")
         topTab.selectedSegmentIndex = topTabVal
         
@@ -260,8 +344,6 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         httpBody.layer.borderWidth = 0.5
         httpBody.layer.cornerRadius = 6.0
         
-//        topTab.tintColor = UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1)
-        
         setBtnStyle(btn: httpSendBtn, radius:5.0, shadow:0.0)
     }
     
@@ -294,12 +376,12 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         case 3: bodyHeader = ["key":"Content-Type","val":"application/xml"]
         default: break
         }
-
+        
         headOne["key"] = data["headOneKey"]
         headTwo["key"] = data["headTwoKey"]
         headThree["key"] = data["headThreeKey"]
         headFour["key"] = data["HeadFourKey"]
-
+        
         headOne["val"] = data["headOneVal"]
         headTwo["val"] = data["headTwoVal"]
         headThree["val"] = data["headThreeVal"]
@@ -416,10 +498,6 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         if(httpHeaderKey.text?.isEmpty ?? true || httpHeaderVal.text?.isEmpty ?? true){
             headCheck = false;
         }
-        print("httpHeaderKey.text?.isEmpty ?? true")
-        print(httpHeaderKey.text?.isEmpty ?? true)
-        print("httpHeaderVal.text?.isEmpty ?? true")
-        print(httpHeaderVal.text?.isEmpty ?? true)
         
         if(count == 4){
             if(headCheck){
@@ -481,6 +559,7 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
     
     @IBAction func httpSendBtnPress(_ sender: UIButton) {
         let url: String = httpUrl.text ?? ""
+        
         let body: String = httpBody.text ?? ""
         var method: String = "GET"
         let methodIndex: Int = httpMethod.selectedSegmentIndex
@@ -498,8 +577,13 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
             self.httpSendBtn.setTitle("...", for: .normal)
             do {
                 var reqOut:String = "url:\n\(url)\n"
+                var jsonOut:[String:Any] = ["url":url]
+                
                 reqOut += "\nmethod:    \(method)\n"
+                jsonOut["method"] = method;
+                
                 var headerVals:String = "";
+                var jsonHeaders:[String:String] = [:]
                 
                 var request = URLRequest(url: URL(string: url)!)
                 request.httpMethod = method
@@ -507,31 +591,39 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 if(bodyHeader["key"] != "" && bodyHeader["val"] != "") {
                     request.setValue(bodyHeader["val"], forHTTPHeaderField: bodyHeader["key"] ?? "")
                     headerVals += "\(bodyHeader["key"] ?? ""): \(bodyHeader["val"] ?? "")\n"
+                    jsonHeaders[bodyHeader["key"] ?? "bodyHeaderKey"] = bodyHeader["val"]
                 }
                 if(headOne["key"] != "" && headOne["val"] != "") {
                     request.setValue(headOne["val"], forHTTPHeaderField: headOne["key"] ?? "")
                     headerVals += "\(headOne["key"] ?? ""): \(headOne["val"] ?? "")\n"
+                    jsonHeaders[headOne["key"] ?? "headerOne"] = headOne["val"]
                 }
                 if(headTwo["key"] != "" && headTwo["val"] != "") {
                     request.setValue(headTwo["val"], forHTTPHeaderField: headTwo["key"] ?? "")
                     headerVals += ", \(headTwo["key"] ?? ""): \(headTwo["val"] ?? "")\n"
+                    jsonHeaders[headTwo["key"] ?? "headerTwo"] = headTwo["val"]
                 }
                 if(headThree["key"] != "" && headThree["val"] != "") {
                     request.setValue(headThree["val"], forHTTPHeaderField: headThree["key"] ?? "")
                     headerVals += ", \(headThree["key"] ?? ""): \(headThree["val"] ?? "")\n"
+                    jsonHeaders[headThree["key"] ?? "headerThree"] = headThree["val"]
                 }
                 if(headFour["key"] != "" && headFour["val"] != "") {
                     request.setValue(headFour["val"], forHTTPHeaderField: headFour["key"] ?? "")
                     headerVals += ", \(headFour["key"] ?? ""): \(headFour["val"] ?? "")\n"
+                    jsonHeaders[headFour["key"] ?? "headerFour"] = headFour["val"]
                 }
                 
                 if(headerVals != "") {
                     reqOut += "\nheaders:\n\(headerVals)";
                 }
                 
+                jsonOut["headers"] = jsonHeaders
+                
                 if(body != "") {
                     request.httpBody = body.data(using: .utf8, allowLossyConversion: false)!
                     reqOut += "\nbody:\n\(body)";
+                    jsonOut["body"] = body
                 }
                 
                 DispatchQueue.main.async {
@@ -540,28 +632,42 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
                 
                 let task = URLSession.shared.dataTask(with: request) { data, response, error in
                     guard let data = data, error == nil else {
-                        self.showResponseView(str:String(error!.localizedDescription), code:999)
+                        let err:String = String(error!.localizedDescription)
+                        jsonOut["response"] = err
+                        
+                        self.showResponseView(str:err, code:999)
                         self.resetSendBtn()
+                        //SEND LOGS
+                        self.sendLogs(message: jsonOut)
+                        
                         print("error=\(String(describing: error))")
                         return
                     }
                     
                     let httpStatus = response as? HTTPURLResponse
                     let statusMsg: Int = Int(httpStatus!.statusCode)
-                    print("STATUS MSG")
-                    print(statusMsg)
+                    jsonOut["status"] = String(statusMsg)
+                    
                     
                     do {
                         if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
                             let output = stringify(json: json, prettyPrinted: true)
+                            jsonOut["response"] = json
+                            
                             self.showResponseView(str:output, code:statusMsg)
                             self.resetSendBtn()
+                            //SEND LOGS
+                            self.sendLogs(message: jsonOut)
                         }
                     } catch let error {
                         print(error.localizedDescription)
                         let str = String(decoding: data, as: UTF8.self)
+                        jsonOut["response"] = str
+                        
                         self.showResponseView(str:str, code:statusMsg)
                         self.resetSendBtn()
+                        //SEND LOGS
+                        self.sendLogs(message: jsonOut)
                     }
                 }
                 task.resume()
@@ -569,10 +675,70 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
         } else {
             self.httpSendBtn.setTitle("Invalid URL", for: .normal)
             resetSendBtn()
+            self.sendLogs(message: ["error":"Invalid URL \(url)"])
         }
     }
     
     //CUSTOM STYLING & GLOBAL FUNCS
+    func sendLogs(message: [String:Any]) {
+        let logPOST = UserDefaults.standard.string(forKey: "logPOST") ?? ""
+        let logURL = UserDefaults.standard.string(forKey: "logURL") ?? ""
+        let logKey = UserDefaults.standard.string(forKey: "logKey") ?? ""
+        let logVal = UserDefaults.standard.string(forKey: "logVal") ?? ""
+        
+        if(logURL != "") {
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+            let now = df.string(from: Date())
+            
+            var output = message;
+            output["timestamp"] = now
+            
+            if(logURL != "") {
+                let finalOut:[String:Any] = ["message":output]
+                let logOut = stringify(json: finalOut, prettyPrinted: true)
+                
+                do {
+                    var request:URLRequest;
+                    if(logPOST == "true"){
+                        request = URLRequest(url: URL(string: logURL)!)
+                        request.httpMethod = "POST"
+                        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                        
+                        print("LOG OUT ------------------------------ ")
+                        print(logOut)
+                        print("END LOG OUT  ------------------------- ")
+                        request.httpBody = logOut.data(using: .utf8, allowLossyConversion: false)!
+                    } else {
+                        var finalURL:String = "\(logURL)"
+                        if logURL.contains("?") {
+                            finalURL = "\(logURL)&app=watch-request&source=iphone-test&status=\(message["status"] ?? "error")"
+                        } else {
+                            finalURL = "\(logURL)?app=watch-request&source=iphone-test&status=\(message["status"] ?? "error")"
+                        }
+                        
+                        request = URLRequest(url: URL(string: finalURL)!)
+                        request.httpMethod = "GET"
+                    }
+                    
+                    if(logKey != "" && logVal != ""){
+                        request.setValue(logVal, forHTTPHeaderField: logKey)
+                    }
+                    
+                    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                        guard error == nil else {
+                            let err:String = String(error!.localizedDescription);
+                            print("LOG ERR \(err)")
+                            return
+                        }
+                        print("LOG SENT")
+                    }
+                    task.resume()
+                }
+            }
+        }
+    }
+    
     func showResponseView(str:String, code:Int){
         DispatchQueue.main.async {
             UserDefaults.standard.set(str, forKey: "httpResponse")
@@ -580,12 +746,14 @@ class RequestViewController: UIViewController, UITextFieldDelegate {
             self.performSegue(withIdentifier: "httpResponseSegue", sender: self)
         }
     }
+    
     func resetSendBtn(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.httpSendBtn.isEnabled = true;
-            self.httpSendBtn.setTitle("Send", for: .normal)
+            self.httpSendBtn.setTitle("Test", for: .normal)
         }
     }
+    
     func updateHeaderOutput(){
         var headerText:String = ""
         
@@ -634,7 +802,7 @@ class ResponseViewController: UIViewController {
             responseCode.textColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0)
         }
         
-        print(UserDefaults.standard.string(forKey: "httpResponse") ?? "")
+//        print(UserDefaults.standard.string(forKey: "httpResponse") ?? "")
         setBtnStyle(btn: httpShareBtn, radius: 5.0, shadow: 0.0)
         setBtnStyle(btn: responseCloseBtn, radius: 5.0, shadow: 0.0)
     }
@@ -711,12 +879,12 @@ func verifyUrl(urlString: String?) -> Bool {
 func setBtnStyle(btn:UIButton, radius:Double, shadow:Double){
     btn.layer.cornerRadius = CGFloat(radius)
     btn.backgroundColor = UIColor(red: 0.0, green: 0.4, blue: 0.8, alpha: 1)
-//    btn.layer.borderColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1).cgColor
-//    btn.layer.borderWidth = 0
-//    btn.layer.shadowColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5).cgColor
-//    btn.layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
-//    btn.layer.shadowOpacity = 1
-//    btn.layer.shadowRadius = CGFloat(shadow)
+    //    btn.layer.borderColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1).cgColor
+    //    btn.layer.borderWidth = 0
+    //    btn.layer.shadowColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.5).cgColor
+    //    btn.layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
+    //    btn.layer.shadowOpacity = 1
+    //    btn.layer.shadowRadius = CGFloat(shadow)
 }
 
 var bodyHeader:[String:String] = ["key":"","val":""]
